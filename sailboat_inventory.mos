@@ -1,0 +1,45 @@
+model sailboat_inventory
+uses "mmxprs"
+
+! Computer session 2
+
+declarations
+	number_of_periods = 4
+	periods = 1..number_of_periods
+	period_names: array(periods) of string
+	demand: array(periods) of real
+	cost,production_limit: real
+	make,sell,inventory: array(periods) of mpvar
+end-declarations
+
+initialisations from "sailboat_inventory.dat"
+	period_names demand cost production_limit
+end-initialisations
+
+! Objective function
+total_cost:= sum(t in periods) cost*make(t)
+
+! Constraints
+
+! Production limit
+forall(t in periods) make(t) <= production_limit
+
+! Demand satisfaction
+forall(t in periods) sell(t) >= demand(t)
+
+! Inventory balance
+forall(t in periods) do
+	if (t>1) then
+		inventory(t) = inventory(t-1) + make(t) - sell(t)
+	else
+		inventory(1) = make(1) - sell(1)
+	end-if
+end-do
+
+minimize(total_cost)
+
+forall(t in periods) writeln("In ", period_names(t), ", make ",getsol(make(t))," and sell ",getsol(sell(t)),". Inventory level at the end of the quarter: ",getsol(inventory(t)))
+writeln
+writeln("Total cost: £", getobjval,".")
+
+end-model

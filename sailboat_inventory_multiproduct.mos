@@ -1,0 +1,59 @@
+model sailboat_inventory_multiproduct
+uses "mmxprs"
+
+! Computer session 2
+
+declarations
+	number_of_periods = 4
+	periods = 1..number_of_periods
+	period_names: array(periods) of string
+	number_of_products = 2
+	products = 1..number_of_products
+	product_names: array(products) of string
+	demand: array(products,periods) of real
+	cost: array(products, periods) of real 
+	holding_cost, hours_needed: array(products) of real
+	production_limit:real
+	make,sell,inventory: array(products,periods) of mpvar
+end-declarations
+
+initialisations from "sailboat_inventory_multiproduct.dat"
+	period_names product_names demand cost production_limit holding_cost hours_needed
+end-initialisations
+
+! Objective function
+total_cost:= sum(p in products, t in periods) cost(p, t)*make(p,t) + sum(p in products, t in periods) holding_cost(p)*inventory(p,t)
+
+! Constraints
+
+! Production limit
+forall(t in periods) sum(p in products) hours_needed(p)*make(p,t) <= production_limit
+
+! Demand satisfaction
+forall(p in products, t in periods) sell(p,t) >= demand(p,t)
+
+! Inventory balance
+forall(p in products, t in periods) do
+	if (t>1) then
+		inventory(p,t) = inventory(p,t-1) + make(p,t) - sell(p,t)
+	else
+		inventory(p,1) = make(p,1) - sell(p,1)
+	end-if
+end-do
+
+minimize(total_cost)
+
+forall(t in periods) do
+	writeln("In ", period_names(t),":")
+	forall(p in products) do
+		write("  * ",product_names(p),": make ",getsol(make(p,t))," and sell ",getsol(sell(p,t)),".")
+		if(getsol(inventory(p,t))>0) then
+			writeln(" Inventory level at the end of the quarter: ",getsol(inventory(p,t)))
+		else
+			writeln
+		end-if		
+	end-do
+	writeln
+end-do
+writeln(getobjval)
+end-model

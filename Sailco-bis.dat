@@ -1,0 +1,8 @@
+period_names: ["June" "July" "August" "September"]
+product_names: ["Yellow Demand" "Green Demand" "Pink Demand"]
+cost: 7
+holding_cost: 1
+production_limit: 230
+demand: [60 90 45 55
+70 120 50 60
+10 80 150 80]

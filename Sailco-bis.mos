@@ -1,0 +1,48 @@
+model Sailco_bis
+uses "mmxprs"
+
+! Computer session 2
+
+declarations
+	number_of_periods = 4
+	periods = 1..number_of_periods
+	period_names: array(periods) of string
+	number_of_products = 3
+	products = 1..number_of_products
+	product_names: array(products) of string
+	demand: array(products, periods) of real
+	cost,production_limit,holding_cost: real
+	make,sell,inventory: array(products,periods) of mpvar
+end-declarations
+
+initialisations from "Sailco-bis.dat"
+	period_names demand cost production_limit holding_cost
+end-initialisations
+
+! Objective function
+total_cost:= sum(t in periods, p in products) cost*make(p,t) - sum(t in periods, p in products) holding_cost*inventory(p,t)
+
+! Constraints
+
+! Production limit
+forall(t in periods, p in products) make(p,t) <= production_limit
+
+! Demand satisfaction
+forall(t in periods) sell(p,t) >= demand(p,t)
+
+! Inventory balance
+forall(t in periods) do
+	if (t>1) then
+		inventory(t) = inventory(t-1) + make(t) - sell(t)
+	else
+		inventory(1) = make(1) - sell(1)
+	end-if
+end-do
+
+minimize(total_cost)
+
+forall(t in periods) writeln("In ", period_names(t), ", make ",getsol(make(t))," and sell ",getsol(sell(t)),". Inventory level at the end of the quarter: ",getsol(inventory(t)))
+writeln
+writeln("Total cost: ", getobjval,".")
+
+end-model

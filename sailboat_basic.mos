@@ -1,0 +1,31 @@
+model sailboat_basic
+uses "mmxprs"
+
+! Computer session 2
+
+declarations
+	number_of_periods = 4
+	periods = 1..number_of_periods
+	period_names: array(periods) of string
+	demand: array(periods) of real
+	cost: real
+	make: array(periods) of mpvar
+end-declarations
+
+initialisations from "sailboat_basic.dat"
+	period_names demand cost
+end-initialisations
+
+! Objective function
+total_cost:= sum(t in periods) cost*make(t)
+
+! Constraints
+forall(t in periods) make(t) >= demand(t)
+
+minimize(total_cost)
+
+forall(t in periods) writeln("In ", period_names(t), ", make and sell ", getsol(make(t)),".")
+writeln
+writeln("Total cost: £", getobjval,".")
+
+end-model

@@ -1,0 +1,3 @@
+period_names: ["Spring" "Summer" "Autumn" "Winter"]
+cost: 400
+demand: [40 60 75 25]
